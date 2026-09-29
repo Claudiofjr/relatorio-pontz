@@ -39,26 +39,3 @@ Cidade/UF:
 ```
 
 6. Exibe na tela com o botão **Copiar relatório**.
-
-## Como rodar localmente
-
-Basta abrir o `index.html` no navegador (duplo clique), ou opcionalmente:
-
-```bash
-python -m http.server 8000
-```
-
-Depois acesse <http://localhost:8000>.
-
-> A consulta à ViaCEP precisa de internet. Sem conexão, o campo **Cidade/UF** fica vazio.
-
-## Como publicar no GitHub Pages
-
-1. Faça o push deste repositório para o GitHub.
-2. Em **Settings → Pages**, em *Source*, escolha **Deploy from a branch**.
-3. Selecione a branch `main` e a pasta `/ (root)` e salve.
-4. A página fica disponível em `https://claudiofjr.github.io/relatorio-pontz/`.
-
-## Tecnologias
-
-HTML + CSS + JavaScript puros, em um único arquivo (`index.html`). Sem dependências, sem build.
