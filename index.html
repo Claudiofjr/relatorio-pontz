@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gerador de Relatório — Pontz</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%93%84</text></svg>">
+<style>
+  :root {
+    --bg: #f0f2f5;
+    --card: #ffffff;
+    --border: #d8dee4;
+    --text: #1f2328;
+    --muted: #656d76;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --success: #16a34a;
+    --success-hover: #15803d;
+    --danger: #b45309;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin: 0 0 4px;
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0 0 20px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+
+  label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+
+  textarea {
+    width: 100%;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text);
+    resize: vertical;
+  }
+
+  textarea:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: -1px;
+    border-color: var(--primary);
+  }
+
+  #entrada { min-height: 240px; }
+  #saida { min-height: 300px; background: #f8fafc; }
+
+  .hint {
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-top: 8px;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  button {
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  button:hover { background: #f6f8fa; }
+
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+
+  .btn-primary:hover { background: var(--primary-hover); }
+
+  .btn-success {
+    background: var(--success);
+    border-color: var(--success);
+    color: #fff;
+  }
+
+  .btn-success:hover { background: var(--success-hover); }
+
+  .status {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-left: 4px;
+    color: var(--success);
+    min-height: 1.2em;
+  }
+
+  .status.warning { color: var(--danger); }
+
+  [hidden] { display: none !important; }
+
+  footer {
+    color: var(--muted);
+    font-size: 0.78rem;
+    text-align: center;
+  }
+
+  @media (max-width: 560px) {
+    .actions button { flex: 1 1 auto; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Gerador de Relatório</h1>
+  <p class="subtitle">Cole o texto da proposta e gere o relatório formatado.</p>
+
+  <div class="card">
+    <label for="entrada">Texto da proposta</label>
+    <textarea id="entrada" placeholder="Cole aqui o texto completo da proposta...&#10;&#10;CPF/CNPJ do Cliente&#10;..."></textarea>
+    <p class="hint">Os campos são extraídos automaticamente: rótulo em uma linha, valor na linha seguinte (Proposta, Grupo e Cota são reconhecidos dentro do texto).</p>
+    <div class="actions">
+      <button type="button" id="btnColar">Colar</button>
+      <button type="button" id="btnLimpar">Limpar</button>
+      <button type="button" id="btnCriar" class="btn-primary">Criar relatório</button>
+    </div>
+  </div>
+
+  <div class="card" id="resultado" hidden>
+    <label for="saida">Relatório gerado</label>
+    <textarea id="saida" readonly></textarea>
+    <div class="actions">
+      <button type="button" id="btnCopiar" class="btn-success">Copiar relatório</button>
+      <span class="status" id="status" role="status" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <footer>Funciona igual ao atalho AutoHotkey: extração de campos + consulta de Cidade/UF pelo CEP (ViaCEP).</footer>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  const entrada = $("entrada");
+  const saida = $("saida");
+  const resultado = $("resultado");
+  const statusEl = $("status");
+  const btnCriar = $("btnCriar");
+
+  function normalizar(texto) {
+    return texto.replace(/\r\n/g, "\n");
+  }
+
+  function extrair(texto, rotulo) {
+    const m = texto.match(new RegExp(rotulo + "\\s*\\n\\s*(.+)", "i"));
+    if (m) return m[1].trim();
+    return "";
+  }
+
+  async function montarRelatorio(textoBruto) {
+    const texto = normalizar(textoBruto);
+
+    const cpf = extrair(texto, "CPF/CNPJ do Cliente");
+    const nome = extrair(texto, "Nome do Cliente");
+    const dataNasc = extrair(texto, "Data de nascimento");
+    const telefone = extrair(texto, "Telefone/celular");
+    const email = extrair(texto, "E-mail");
+    const renda = extrair(texto, "Renda");
+    const credito = extrair(texto, "Crédito");
+    const endereco = extrair(texto, "Endereço");
+
+    let contrato = "";
+    let m = texto.match(/Proposta\s*(\d+)/i);
+    if (m) contrato = m[1];
+
+    let grupo = "";
+    m = texto.match(/Grupo\s*-\s*(\d+)/i);
+    if (m) grupo = m[1];
+
+    let cota = "";
+    m = texto.match(/Cota\s*-\s*(\d+)/i);
+    if (m) cota = m[1];
+
+    let cidadeUF = "";
+    const mCep = endereco.match(/(\d{5}-?\d{3})/);
+    if (mCep) {
+      const cep = mCep[1].replace("-", "");
+      try {
+        const resp = await fetch("https://viacep.com.br/ws/" + cep + "/json/");
+        if (resp.ok) {
+          const dados = await resp.json();
+          if (dados && !dados.erro && dados.localidade && dados.uf) {
+            cidadeUF = dados.localidade + "/" + dados.uf;
+          }
+        }
+      } catch (e) {
+        // Sem internet ou ViaCEP indisponível: Cidade/UF fica vazio (igual ao script).
+      }
+    }
+
+    const textoRelatorio = [
+      "Administradora: Pontz",
+      "Contrato: " + contrato,
+      "Grupo: " + grupo,
+      "Cota: " + cota,
+      "Crédito: " + credito,
+      "Forma de pagto: ",
+      "Lead?: ",
+      "CPF: " + cpf,
+      "Nome: " + nome,
+      "Data Nasc.: " + dataNasc,
+      "Telefone: " + telefone,
+      "E-mail: " + email,
+      "Renda: " + renda,
+      "Cidade/UF: " + cidadeUF
+    ].join("\n");
+
+    const achouAlgo = [contrato, grupo, cota, credito, cpf, nome, dataNasc, telefone, email, renda, cidadeUF]
+      .some((v) => v !== "");
+
+    return { textoRelatorio, achouAlgo };
+  }
+
+  function setStatus(msg, warning) {
+    statusEl.textContent = msg || "";
+    statusEl.classList.toggle("warning", !!warning);
+  }
+
+  btnCriar.addEventListener("click", async () => {
+    const bruto = entrada.value;
+    if (!bruto.trim()) {
+      setStatus("Cole o texto da proposta primeiro.", true);
+      entrada.focus();
+      return;
+    }
+
+    btnCriar.disabled = true;
+    const rotuloOriginal = btnCriar.textContent;
+    btnCriar.textContent = "Gerando...";
+    setStatus("");
+
+    try {
+      const { textoRelatorio, achouAlgo } = await montarRelatorio(bruto);
+      saida.value = textoRelatorio;
+      resultado.hidden = false;
+      setStatus(
+        achouAlgo ? "Relatório gerado." : "Nenhum campo foi reconhecido no texto.",
+        !achouAlgo
+      );
+      resultado.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } catch (e) {
+      setStatus("Erro ao gerar o relatório: " + e.message, true);
+    } finally {
+      btnCriar.disabled = false;
+      btnCriar.textContent = rotuloOriginal;
+    }
+  });
+
+  $("btnCopiar").addEventListener("click", async () => {
+    const texto = saida.value;
+    if (!texto) return;
+    try {
+      await navigator.clipboard.writeText(texto);
+      setStatus("Copiado!");
+    } catch (e) {
+      saida.select();
+      const ok = document.execCommand("copy");
+      setStatus(ok ? "Copiado!" : "Não foi possível copiar. Selecione e use Ctrl+C.", !ok);
+    }
+  });
+
+  $("btnColar").addEventListener("click", async () => {
+    try {
+      const texto = await navigator.clipboard.readText();
+      if (!texto.trim()) {
+        setStatus("A área de transferência está vazia.", true);
+        return;
+      }
+      entrada.value = texto;
+      setStatus("");
+    } catch (e) {
+      setStatus("Não foi permitido ler a área de transferência. Cole manualmente com Ctrl+V.", true);
+      entrada.focus();
+    }
+  });
+
+  $("btnLimpar").addEventListener("click", () => {
+    entrada.value = "";
+    saida.value = "";
+    resultado.hidden = true;
+    setStatus("");
+    entrada.focus();
+  });
+</script>
+</body>
+</html>

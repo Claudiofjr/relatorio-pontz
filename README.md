@@ -1,0 +1,64 @@
+# Gerador de Relatório — Pontz
+
+Página web simples que reproduz o atalho do AutoHotkey (`^+p`): você cola o texto bruto de uma proposta, clica em **Criar relatório** e recebe o relatório formatado, pronto para copiar.
+
+## O que a página faz
+
+1. Lê o texto colado no campo.
+2. Extrai os campos (rótulo na linha, valor na linha seguinte):
+   - CPF/CNPJ do Cliente
+   - Nome do Cliente
+   - Data de nascimento
+   - Telefone/celular
+   - E-mail
+   - Renda
+   - Crédito
+   - Endereço
+3. Extrai outros dados dentro do texto:
+   - **Contrato** ← `Proposta <número>`
+   - **Grupo** ← `Grupo - <número>`
+   - **Cota** ← `Cota - <número>`
+4. Procura o CEP no endereço e consulta a [ViaCEP](https://viacep.com.br) para preencher **Cidade/UF**.
+5. Monta o relatório:
+
+```
+Administradora: Pontz
+Contrato:
+Grupo:
+Cota:
+Crédito:
+Forma de pagto:
+Lead?:
+CPF:
+Nome:
+Data Nasc.:
+Telefone:
+E-mail:
+Renda:
+Cidade/UF:
+```
+
+6. Exibe na tela com o botão **Copiar relatório**.
+
+## Como rodar localmente
+
+Basta abrir o `index.html` no navegador (duplo clique), ou opcionalmente:
+
+```bash
+python -m http.server 8000
+```
+
+Depois acesse <http://localhost:8000>.
+
+> A consulta à ViaCEP precisa de internet. Sem conexão, o campo **Cidade/UF** fica vazio.
+
+## Como publicar no GitHub Pages
+
+1. Faça o push deste repositório para o GitHub.
+2. Em **Settings → Pages**, em *Source*, escolha **Deploy from a branch**.
+3. Selecione a branch `main` e a pasta `/ (root)` e salve.
+4. A página fica disponível em `https://claudiofjr.github.io/relatorio-pontz/`.
+
+## Tecnologias
+
+HTML + CSS + JavaScript puros, em um único arquivo (`index.html`). Sem dependências, sem build.
