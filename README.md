@@ -1,6 +1,6 @@
 # Gerador de Relatório — Pontz
 
-Página web simples que reproduz o atalho do AutoHotkey (`^+p`): você cola o texto bruto de uma proposta, clica em **Criar relatório** e recebe o relatório formatado, pronto para copiar.
+Página web simples: você cola o texto bruto de uma proposta, clica em **Criar relatório** e recebe o relatório formatado, pronto para copiar.
 
 ## O que a página faz
 
